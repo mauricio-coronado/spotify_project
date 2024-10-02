@@ -1,8 +1,12 @@
 import streamlit as st
-import joblib
+# import joblib
 import pandas as pd
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import StandardScaler
+import plotly.graph_objects as go
+from sklearn.preprocessing import MinMaxScaler
+from plotly.subplots import make_subplots
+
 
 # Function to find nearest neighbors by ID (without re-fitting the model)
 def get_nearest_neighbors(df, nn_model, scaler, query_index, n_neighbors=3):
@@ -27,7 +31,7 @@ st.markdown("""
  * Results and additional plots will appear below.
 """)
 
-songs_df = pd.read_csv('1001_artists_discography.csv', index_col=0)
+songs_df = pd.read_csv('1001_artists_and_related_discography.csv', index_col=0)
 songs_df.index = songs_df.index.astype(str)
 
 st.sidebar.markdown("## Select Artist and Song")
@@ -93,23 +97,73 @@ if st.sidebar.button('Predict'):
 
     # st.write(f'<p class="big-font">The nearest neighbors for {query_index} are:</p>', unsafe_allow_html=True)
     
+    st.write(f'### {song_name} by {artist_name}:')
+
+
+
+    categories = songs_df[predictors].columns
+
+    songs_df_prep = songs_df.copy()
+    songs_df_prep.index = songs_df_prep.index + ' - ' + songs_df_prep.artist
+    scaler = MinMaxScaler()
+    # Normalize the column
+    songs_df_prep['loudness'] = scaler.fit_transform(songs_df_prep[['loudness']])
+
+    fig = make_subplots(rows=1, 
+                        cols=2, 
+                        specs=[[{"type": "polar"}, {"type": "bar"}]], 
+                        column_widths=[2/3, 1/3], 
+                        # subplot_titles=("Sine Wave", "Cosine Wave")
+                        )
+
+    fig.add_trace(go.Scatterpolar(
+        r=songs_df_prep[predictors].loc[query_index,:],
+        theta=categories,
+        fill='toself',
+        name=query_index
+    ),
+    row=1,
+    col=1)
+
+    fig.add_trace(go.Bar(
+        x=['Popularity'], 
+        y=[songs_df_prep['popularity'].loc[query_index]],
+        width=[0.5],
+        name='Popularity'
+        # range_y=[0,100]
+        ),
+    row=1,
+    col=2)
+
+    # fig.add_trace(go.Scatterpolar(
+    #     r=songs_df_prep[predictors].loc[song_two,:],
+    #     theta=categories,
+    #     fill='toself',
+    #     name=song_two
+    # ))
+
+    fig.update_yaxes(range=[0, 100], row=1, col=2)
+
+    fig.update_layout(
+    polar=dict(
+        radialaxis=dict(
+        visible=True,
+        range=[0, 1]
+        ),
+    ),
+    showlegend=False
+    )
+
+    st.plotly_chart(fig, use_container_width=True, )
+    
+    
     col1, col2 = st.columns([3,1])
     col1.markdown('#### Song')
-    col2.markdown('#### Distance')
-    # col1.write('Song')
-    # col2.write('Distance')
-
-    # # Three columns with different widths
-    # col1, col2, col3 = st.columns([3,1,1])
-    # # col1 is wider
-
-    # # Using 'with' notation:
-    # >>> with col1:
-    # >>>     st.write('This is column 1')
+    col2.markdown('#### Similarity')
     
     for neighbor_id, distance in neighbors:
         col1.write(neighbor_id)
-        col2.write(round(distance,2))
+        col2.write(round(1/(1+distance),2))
         # st.write(f"Song: {neighbor_id}, Distance: {round(distance,2)}")
 
 
