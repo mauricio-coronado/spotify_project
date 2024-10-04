@@ -151,8 +151,7 @@ if st.sidebar.button('Predict'):
     fig = make_subplots(rows=1, 
                         cols=2, 
                         specs=[[{"type": "polar"}, {"type": "bar"}]], 
-                        column_widths=[2/3, 1/3], 
-                        # subplot_titles=("Sine Wave", "Cosine Wave")
+                        column_widths=[3/4, 1/4], 
                         )
 
     fig.add_trace(go.Scatterpolar(
@@ -167,7 +166,7 @@ if st.sidebar.button('Predict'):
     fig.add_trace(go.Bar(
         x=['Popularity'], 
         y=[songs_df_prep['popularity'].loc[query_index]],
-        width=[0.5],
+        width=[0.3],
         name='Popularity'
         # range_y=[0,100]
         ),
@@ -190,10 +189,12 @@ if st.sidebar.button('Predict'):
         range=[0, 1]
         ),
     ),
-    showlegend=False
+    showlegend=False,
+    width=600,
+    height=450
     )
 
-    st.plotly_chart(fig, use_container_width=True, )
+    st.plotly_chart(fig, use_container_width=False)
     
     
     # col1, col2, col3 = st.columns([3,2,1])
@@ -247,7 +248,7 @@ if st.sidebar.button('Predict'):
 #                                                     ), 
                  hide_index=True, 
                  column_config={
-                     'Song': st.column_config.Column(width='large'),
+                     'Song': st.column_config.Column(width='medium'),
                      'Artist': st.column_config.Column(width='medium'),
                      'Similarity': st.column_config.Column(width='small'),
                      'Popularity Tier': st.column_config.Column(width='medium')
