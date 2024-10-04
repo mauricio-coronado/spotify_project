@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 import plotly.graph_objects as go
 from sklearn.preprocessing import MinMaxScaler
 from plotly.subplots import make_subplots
+import ast
 
 
 # Function to find nearest neighbors by ID (without re-fitting the model)
@@ -32,7 +33,13 @@ st.markdown("""
 """)
 
 songs_df = pd.read_csv('1001_artists_and_related_discography.csv', index_col=0)
+
+related_artists_df = pd.read_csv('related_artists_data.csv', index_col=0)
+# songs_df = songs_df.merge(related_artists_df, on='artist')
+related_artists_df['related_artists'] = related_artists_df['related_artists'].apply(ast.literal_eval)
+# songs_df = songs_df.set_index('name')
 songs_df.index = songs_df.index.astype(str)
+
 
 st.sidebar.markdown("## Select Artist and Song")
 
@@ -64,9 +71,9 @@ if st.sidebar.button('Predict'):
 
     songs_df_prep = songs_df.copy()
     songs_df_prep.index = songs_df_prep.index + ' - ' + songs_df_prep.artist
-    # rel_artists = songs_df_prep.related_artists.loc[query_index]
+    rel_artists = related_artists_df.loc[artist_name, 'related_artists']
     # print(rel_artists)
-    # songs_df_prep = songs_df_prep[songs_df_prep.artist.isin(rel_artists + [artist_name])]
+    songs_df_prep = songs_df_prep[songs_df_prep.artist.isin(rel_artists + [artist_name])]
 
 
     predictors = ['acousticness',
