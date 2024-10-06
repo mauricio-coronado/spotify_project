@@ -53,11 +53,12 @@ def color_scale(val):
     
     return f'color: {color}'
 
-st.title("Track Explorer")
+st.title("SongScout")
 
 st.markdown("""
- * Use the menu at left to select the artist and song you'd like recommendations for.
- * Results and additional plots will appear below.
+ * Explore over 50,000 of your favorite artists!  
+ * Dive into any of the 800,000+ songs covered. Visualize their unique features with a radar chart and discover new tracks to boost your playlists!
+ * Select an artist and a song from the menu on the left to start exploring.
 """)
 
 songs_df = pd.read_csv('1001_artists_and_related_discography.csv', index_col=0)
@@ -87,8 +88,9 @@ else:
 song_options = [default_option] + song_options
 song_name = st.sidebar.selectbox('Song:', song_options)
 
+include_same_artist = st.sidebar.checkbox("Include selected Artist's songs:", value=True)
 
-if st.sidebar.button('Predict'):
+if st.sidebar.button('Recommend!'):
 
     # Example usage
     # song_name = 'anything'
@@ -104,14 +106,20 @@ if st.sidebar.button('Predict'):
     # print(rel_artists)
     
     songs_df_prep = songs_df.copy()
-    songs_df_prep = songs_df_prep[songs_df_prep.artist.isin(rel_artists + [artist_name])]
+    songs_df_prep = songs_df_prep[songs_df_prep.artist.isin(rel_artists)]
 
+    if include_same_artist:
+        songs_df_prep = pd.concat([songs_df_prep, songs_df[songs_df.artist == artist_name]])
+    else:
+        songs_df_prep = pd.concat([songs_df_prep, songs_df[songs_df.index == query_index]])
 
     predictors = [
                 'acousticness',
                 'danceability',
                 'energy',
-                'loudness',
+                # 'loudness',
+                'tempo',
+                # 'instrumentalness',
                 'speechiness'
                 ]
 
@@ -136,6 +144,7 @@ if st.sidebar.button('Predict'):
 
     # st.write(f'<p class="big-font">The nearest neighbors for {query_index} are:</p>', unsafe_allow_html=True)
     
+    st.write("**Note for mobile users**: for a better view of the results, please hold your phone horizontally.")
     st.write(f'### {song_name} by {artist_name}:')
 
 
@@ -147,6 +156,7 @@ if st.sidebar.button('Predict'):
     scaler = MinMaxScaler()
     # Normalize the column
     songs_df_prep['loudness'] = scaler.fit_transform(songs_df_prep[['loudness']])
+    songs_df_prep['tempo'] = scaler.fit_transform(songs_df_prep[['tempo']])
 
     fig = make_subplots(rows=1, 
                         cols=2, 
@@ -239,13 +249,7 @@ if st.sidebar.button('Predict'):
     styled_df = recommendations_df.style.format({'Similarity': '{:.2f}'}).applymap(color_scale, subset=['Similarity'])
 
     # Display the DataFrame as a table
-    st.dataframe(styled_df,
-# .style.background_gradient(
-#                                                         subset=['Similarity'], 
-#                                                         cmap='RdYlGn',  # Red to Yellow to Green color map
-#                                                         vmin=0,          # Minimum value for color scale
-#                                                         vmax=1          # Maximum value for color scale
-#                                                     ), 
+    st.dataframe(styled_df, 
                  hide_index=True, 
                  column_config={
                      'Song': st.column_config.Column(width='medium'),
