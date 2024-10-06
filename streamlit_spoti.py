@@ -57,7 +57,7 @@ st.title("SongScout")
 
 st.markdown("""
  * Explore over 50,000 of your favorite artists!  
- * Dive into any of the 800,000+ songs covered. Visualize their unique features with a radar chart and discover new tracks to boost your playlists!
+ * Dive into any of the 800,000+ songs covered. Visualize their unique features with a radar chart and discover similar new tracks to boost your playlists!
  * Select an artist and a song from the menu on the left to start exploring.
 """)
 
@@ -88,7 +88,7 @@ else:
 song_options = [default_option] + song_options
 song_name = st.sidebar.selectbox('Song:', song_options)
 
-include_same_artist = st.sidebar.checkbox("Include selected Artist's songs:", value=True)
+include_same_artist = st.sidebar.checkbox("Include songs from the chosen artist", value=True)
 
 if st.sidebar.button('Recommend!'):
 
